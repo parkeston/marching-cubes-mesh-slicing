@@ -1,0 +1,29 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+static const int numThreads=8;
+
+struct Voxel
+{
+    float value;
+    float discarded;
+};
+
+int numPointsPerAxis;
+
+StructuredBuffer<Voxel> voxels;
+RWStructuredBuffer<int> voxelsNormalized;
+
+int indexFromCoord(uint x, uint y, uint z) {
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+    
+    int index = indexFromCoord(id.x,id.y,id.z);
+    voxelsNormalized[index] = (voxels[index].value < 0.0f ||  voxels[index].discarded>0) ? 0 : 1; //if < 0 - no surface
+}

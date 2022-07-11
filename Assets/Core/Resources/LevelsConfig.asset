@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb20c35f413064dd1980125e8cd2c343, type: 3}
+  m_Name: LevelsConfig
+  m_EditorClassIdentifier: 
+  levels:
+  - slicingShape: {fileID: 11700000, guid: 1b51ea77d64ed4b58ab51b3c6fc9d47a, type: 2}
+  - slicingShape: {fileID: 11700000, guid: 8ea9a7527f2bb4fb686d68d54ad2a429, type: 2}
+  - slicingShape: {fileID: 11700000, guid: f4405bec8a5dc4a71830dcdec29b579e, type: 2}
+  - slicingShape: {fileID: 11700000, guid: f208f80fc933c440181d4516ea9d5614, type: 2}
+  - slicingShape: {fileID: 11700000, guid: cd0adede90cb044d5b9ebc5b7b165232, type: 2}
+  activities:
+  - type: 0
+    viewState: 1
+    sameInstrument: 0
+  - type: 1
+    viewState: 0
+    sameInstrument: 0
+  - type: 2
+    viewState: 0
+    sameInstrument: 0

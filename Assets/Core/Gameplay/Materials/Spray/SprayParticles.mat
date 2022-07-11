@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SprayParticles
+  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderKeywords: EnableFresnel EnableLayer1 EnableLayer2 _ALPHAMODULATE_ON
+  m_LightmapFlags: 0
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CausticMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer0Tex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer1Tex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer2Tex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 10307, guid: 0000000000000000f000000000000000, type: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MarbleTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SurfaceAlphaMaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - PixelSnap: 0
+    - _BlendOp: 0
+    - _BumpScale: 1
+    - _CameraFadingEnabled: 0
+    - _CameraFarFadeDistance: 2
+    - _CameraNearFadeDistance: 1
+    - _CausticScrollSpeed: 1
+    - _ColorMode: 0
+    - _Cull: 2
+    - _CutOutTreshold: 0.5
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DistortionBlend: 0.5
+    - _DistortionEnabled: 0
+    - _DistortionStrength: 1
+    - _DistortionStrengthScaled: 0
+    - _DstBlend: 10
+    - _EmissionEnabled: 0
+    - _EnableCaustic: 0
+    - _EnableExternalAlpha: 0
+    - _EnableFog: 0
+    - _EnableFresnel: 1
+    - _EnableFresnelUseSkybox: 0
+    - _EnableInnerLight: 0
+    - _EnableLayer1: 1
+    - _EnableLayer2: 1
+    - _EnableRefraction: 0
+    - _EnableSpecular: 0
+    - _EnableSurfaceMask: 0
+    - _FlipbookMode: 0
+    - _FresnelTightness: 4
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _InnerLightTightness: 20
+    - _Layer0SpeedX: 0
+    - _Layer0SpeedY: 0
+    - _Layer1SpeedX: 0
+    - _Layer1SpeedY: 0
+    - _Layer2SpeedX: 0
+    - _Layer2SpeedY: 0
+    - _LayerDepthFalloff: 0.9
+    - _LayerHeightBias: 0.1
+    - _LayerHeightBiasStep: 0.1
+    - _LentUVYPose: 0
+    - _LightingEnabled: 0
+    - _MarbleHeightCausticOffset: 0.1
+    - _MarbleHeightScale: 0.1
+    - _Metallic: 0
+    - _Mode: 6
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _RefractionStrength: 0.2
+    - _Shininess: 0.7
+    - _SmoothnessTextureChannel: 0
+    - _SoftParticlesEnabled: 0
+    - _SoftParticlesFarFadeDistance: 1
+    - _SoftParticlesNearFadeDistance: 0
+    - _SpecularBrightness: 1
+    - _SpecularHighlights: 1
+    - _SpecularTightness: 2
+    - _SrcBlend: 2
+    - _UVSec: 0
+    - _ZWrite: 0
+    m_Colors:
+    - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
+    - _CausticTint: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 0.2028302, b: 0.2028302, a: 1}
+    - _ColorAddSubDiff: {r: -1, g: 1, b: 0, a: 0}
+    - _Emission: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 0}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _FresnelColorInside: {r: 1, g: 1, b: 0.5, a: 1}
+    - _FresnelColorOutside: {r: 1, g: 1, b: 1, a: 1}
+    - _InnerLightColorInside: {r: 1, g: 1, b: 1, a: 1}
+    - _InnerLightColorOutside: {r: 1, g: 1, b: 0, a: 1}
+    - _Layer0Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _Layer1Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _Layer2Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SideColor: {r: 1, g: 0.43867922, b: 0.43867922, a: 1}
+    - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
+    - _SpecColor: {r: 1, g: 1, b: 1, a: 0}
+    - _SurfaceAlphaColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TopColor: {r: 0.46701607, g: 0.11801351, b: 0.49056602, a: 1}

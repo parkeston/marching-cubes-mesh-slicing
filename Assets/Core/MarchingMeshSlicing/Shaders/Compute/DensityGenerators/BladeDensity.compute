@@ -1,0 +1,48 @@
+﻿
+#pragma kernel CSMain
+#include "Density.compute"
+
+float3 bladeDimensions;
+float3 translationOffset;
+float rotation;
+
+shared RWStructuredBuffer<int> slicingVoxelsCount;
+
+float3 translate(float3 samplePosition, float3 offset){
+    return samplePosition - offset;
+}
+
+float3 rotate(float3 samplePosition, float rotation){
+    const float PI = 3.14159;
+    float angle = rotation * PI/180.0f;
+    float sine, cosine;
+    sincos(angle, sine, cosine);
+    return float3(cosine * samplePosition.x + sine * samplePosition.y, cosine * samplePosition.y - sine * samplePosition.x,samplePosition.z);
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+    
+    float3 pos = -centre+id*spacing-boundsSize/2;
+    pos = translate(pos,translationOffset);
+    pos = rotate(pos,rotation);
+    
+    float3 q = abs(pos)-(bladeDimensions);
+    float densitySlice = -(length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0));
+
+    Voxel shapeVoxel = voxels[indexFromCoord(id.x,id.y,id.z)];
+    if(shapeVoxel.discarded>0) //do not cut falling parts
+        return;
+
+    float densityBox = shapeVoxel.value;
+    float density = min(-densitySlice,densityBox);
+
+    if(-densitySlice<densityBox && densityBox>=0)
+        slicingVoxelsCount[0]++;
+    
+    voxels[indexFromCoord(id.x,id.y,id.z)].value = density;
+    voxels[indexFromCoord(id.x,id.y,id.z)].discarded = 0;
+}

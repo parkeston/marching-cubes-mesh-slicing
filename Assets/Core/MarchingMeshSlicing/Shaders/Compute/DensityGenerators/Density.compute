@@ -1,0 +1,19 @@
+﻿static const int numThreads = 8;
+
+struct Voxel
+{
+    float value;
+    float discarded;
+};
+
+RWStructuredBuffer<Voxel> voxels;
+
+int numPointsPerAxis;
+float boundsSize;
+float3 centre;
+float spacing;
+float3 worldSize;
+
+int indexFromCoord(uint x, uint y, uint z) {
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}

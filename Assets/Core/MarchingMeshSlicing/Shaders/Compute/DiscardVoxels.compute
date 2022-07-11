@@ -1,0 +1,121 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel clearLabelGroupsSizes
+#pragma kernel countSameLabels
+#pragma kernel appendLabelsToGroups
+#pragma kernel findMinLabelGroup
+#pragma kernel discardLabelGroup
+#pragma kernel findMinLabel
+
+static const int numThreads = 8;
+
+struct Voxel
+{
+    float value;
+    float discarded;
+};
+
+shared float time;
+shared int numPointsPerAxis;
+
+shared RWStructuredBuffer<Voxel> voxels;
+shared StructuredBuffer<int> labels;
+
+shared RWStructuredBuffer<int> labelGroupsSizes;
+shared RWStructuredBuffer<int> helperArgs;
+
+shared Texture3D<float> targetVoxels;
+
+struct LabelGroup
+{
+    int label;
+    int size;
+};
+
+int indexFromCoord(uint x, uint y, uint z) {
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void clearLabelGroupsSizes (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    labelGroupsSizes[index]=0;
+
+    helperArgs[0] = numPointsPerAxis*numPointsPerAxis*numPointsPerAxis; //min size to compare label groups
+    helperArgs[1] = 0; //label groups count
+    helperArgs[2] = -1; //label to discard
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void countSameLabels (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+
+    //if has surface (voxel value >0)
+    //& not basic empty volume (assuming tha 0 label is basic emptiness in marching volume grid)
+    if(labels[index]!=0 && voxels[index].value>=0.0f)
+    {
+        if(targetVoxels[id]>=0.0f) //if has target shape in it, add triple to size, bigger group - less priority to discard
+            InterlockedAdd(labelGroupsSizes[labels[index]],3); //perfectly need to calculate relation between target & non-target voxels and add to this
+        else
+            InterlockedAdd(labelGroupsSizes[labels[index]],1);
+    }
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void appendLabelsToGroups (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(labelGroupsSizes[index]!=0)
+    {
+      InterlockedAdd(helperArgs[1],1);
+    }
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void findMinLabelGroup (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(labelGroupsSizes[index]==0 || helperArgs[1]<2) //if empty group or there is only one label group skip comparsion
+        return;
+   
+   InterlockedMin(helperArgs[0],labelGroupsSizes[index]);
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void findMinLabel(uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(helperArgs[0] == labelGroupsSizes[index])
+    {
+        helperArgs[2]=index;
+    }
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void discardLabelGroup (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(helperArgs[2] == labels[index])
+    {
+        voxels[index].discarded=time;
+    }
+}

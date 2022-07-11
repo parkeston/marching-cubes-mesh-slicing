@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5158740ee64354be384be136fcaa36d9, type: 3}
+  m_Name: InstrumentsConfig
+  m_EditorClassIdentifier: 
+  csCameraLeftPos: {x: -2.5, y: 0, z: -13.6}
+  csCameraLeftRot: {x: 0, y: -8, z: 0}
+  csCameraRightPos: {x: 2.5, y: 0, z: -13.6}
+  csCameraRightRot: {x: 0, y: 8, z: 0}
+  csCameraMiddlePos: {x: 0, y: 0, z: -15.6}
+  csCameraMiddleRot: {x: 0, y: 0, z: 0}
+  csLeftIdlePos: {x: -5, y: 5.6, z: -6}
+  csRightIdlePos: {x: 5, y: 5.6, z: -6}
+  csMiddleIdlePos: {x: 0, y: 12, z: -6}
+  csLeftIdleRot: {x: -70, y: 20, z: 90}
+  csRightIdleRot: {x: -70, y: -20, z: 90}
+  csLeftStartPos: {x: -7, y: 1, z: 0.26}
+  csRightStartPos: {x: 7, y: 1, z: 0.26}
+  csLeftStartRot: {x: 0, y: 0, z: 90}
+  csRightStartRot: {x: 0, y: 0, z: 90}
+  drHidePos: {x: 0, y: 10, z: -12}
+  drIdlePos: {x: 5, y: -2, z: -10}
+  drIdleRot: {x: 0, y: -35, z: 0}
+  drStartPos: {x: 1.5, y: -2, z: -8}
+  drStartRot: {x: 0, y: 0, z: 0}

@@ -1,0 +1,55 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ShapeProgress
+#pragma kernel ShapeCorrection
+
+static const int numThreads=8;
+
+int numPointsPerAxis;
+
+struct Voxel
+{
+    float value;
+    float discarded;
+};
+
+Texture3D<float> targetVoxels;
+RWStructuredBuffer<Voxel> voxels;
+RWStructuredBuffer<int> progress;
+
+int indexFromCoord(int x, int y, int z) {
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void ShapeProgress (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(voxels[index].value<0 && targetVoxels[id]<0 || //if both are emptiness, just ignore it for progress
+       voxels[index].value>0.1f && targetVoxels[id]>0) //check only contours of shape (& inner holes), not inside
+        return;
+
+    InterlockedAdd(progress[0],1);
+    if(abs(voxels[index].value - targetVoxels[id])<0.01f)
+        InterlockedAdd(progress[1],1);
+}
+
+Texture2D<float4> correctionTexture;
+float correctionValue;
+
+[numthreads(numThreads,numThreads,numThreads)]
+void ShapeCorrection (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(correctionTexture[id.xy].a>0)
+    {  
+        if(voxels[index].value>targetVoxels[id] && voxels[index].value<0.3f ||
+           voxels[index].value<targetVoxels[id] && voxels[index].value>-0.3f)
+            voxels[index].value = lerp(voxels[index].value,targetVoxels[id],correctionTexture[id.xy].a/correctionValue);
+    }
+}

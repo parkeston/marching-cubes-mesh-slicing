@@ -1,0 +1,43 @@
+
+#pragma kernel CSMain
+
+static const int numThreads = 8;
+
+struct Voxel
+{
+	float value;
+	float discarded;
+};
+
+StructuredBuffer<Voxel> voxels;
+RWTexture3D<float3> normals;
+
+int numPointsPerAxis;
+
+int clamp(int i)
+{
+	if(i>=numPointsPerAxis)
+		return numPointsPerAxis-1;
+	
+	if(i<0)
+		return 0;
+
+	return i;
+}
+
+int indexFromCoord(int x, int y, int z) {
+	return clamp(z) * numPointsPerAxis * numPointsPerAxis + clamp(y) * numPointsPerAxis + clamp(x);
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+		return;
+	
+	float dx = voxels[indexFromCoord(id.x-1, id.y, id.z)].value - voxels[indexFromCoord(id.x+1, id.y, id.z)].value;
+	float dy = voxels[indexFromCoord(id.x, id.y-1, id.z)].value -voxels[indexFromCoord(id.x, id.y+1, id.z)].value;
+	float dz = voxels[indexFromCoord(id.x, id.y, id.z-1)].value -voxels[indexFromCoord(id.x, id.y, id.z+1)].value;
+	
+	normals[id] = normalize(float3(dx,dy,dz));
+}

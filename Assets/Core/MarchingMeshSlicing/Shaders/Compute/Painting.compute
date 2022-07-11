@@ -1,0 +1,148 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Paint
+#pragma kernel Clear
+#pragma kernel Progress
+#pragma kernel GetShapeTexture
+#pragma kernel ProgressWithMask
+
+static const int numThreads = 8;
+
+uint numPointsPerAxis;
+
+float3 paintPos;
+float paintRadius;
+float paintMaxValue;
+float paintDelta;
+
+struct Voxel
+{
+    float value;
+    float discarded;
+};
+
+uniform float3 _UnlockableColor;
+RWTexture2D<float4> paintTextureWrite;
+Texture2D<float4> paintTextureRead;
+SamplerState _LinearClamp;
+Texture2D<float> maskTexture;
+
+StructuredBuffer<Voxel> voxels;
+RWStructuredBuffer<int> progress;
+RWStructuredBuffer<int> uvBounds;
+
+int indexFromCoord(int x, int y, int z) {
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+
+[numthreads(numThreads,numThreads,numThreads)]
+void Paint (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+    
+    float3 distance = (paintPos-id);
+    distance.z=0; //ignore depth while painting
+    
+    if(length(distance)<=paintRadius)
+    {
+        int2 index = id.xy;
+        float newAlpha = paintDelta*(1-length(distance)/paintRadius);
+        float outAlpha = newAlpha+paintTextureRead[index].a*(1-newAlpha);
+        float3 newColor = _UnlockableColor*newAlpha;
+        float3 resultcolor = newColor+paintTextureRead[index].rgb*(1-newAlpha);
+
+        if(outAlpha>paintMaxValue)
+        {
+            resultcolor*=(paintMaxValue/outAlpha);
+            outAlpha=paintMaxValue;
+        }
+        paintTextureWrite[index] =float4(resultcolor,outAlpha);
+    }
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void Clear (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+    
+    paintTextureWrite[id.xy] = float4(0,0,0,0);
+}
+
+
+[numthreads(numThreads,numThreads,numThreads)]
+void Progress (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    if(voxels[index].value>=0)
+    {
+        InterlockedAdd(progress[0],1);
+
+        if(abs(paintTextureRead[id.xy].a-paintMaxValue)<0.01f)
+            InterlockedAdd(progress[1],1);
+    }
+}
+
+
+[numthreads(numThreads,numThreads,1)]
+void GetShapeTexture (uint2 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis)
+        return;
+    
+    float value = voxels[indexFromCoord(id.x,id.y,(numPointsPerAxis-1)/2)].value;
+    paintTextureWrite[id] = float4(value,value,value,value);
+
+    //need to be at least a little more than dryer melting width, cause it can create a gap from - to + values
+    if(value>=0 && value<=0.35f)
+    {
+        InterlockedMin(uvBounds[0],id.y);
+        InterlockedMax(uvBounds[1],id.y);
+
+        InterlockedMin(uvBounds[2],id.x);
+        InterlockedMax(uvBounds[3],id.x);
+    }
+}
+
+float remapRange (float low1, float high1, float low2, float high2, float value)
+{
+    return low2 + (value - low1) * (high2 - low2) / (high1 - low1);
+}
+
+float GetRemappedUVColor(float2 uv)
+{
+    float color = 0;
+	
+    if(uv.x>=uvBounds[2]/(numPointsPerAxis-1.0f) && uv.x<=uvBounds[3]/(numPointsPerAxis-1.0f)
+        && uv.y>=uvBounds[0]/(numPointsPerAxis-1.0f) && uv.y<=uvBounds[1]/(numPointsPerAxis-1.0f))
+    {
+        float v = remapRange(uvBounds[0]/(numPointsPerAxis-1.0f), uvBounds[1]/(numPointsPerAxis-1.0f), 0, 1, uv.y);
+        float u = remapRange(uvBounds[2]/(numPointsPerAxis-1.0f), uvBounds[3]/(numPointsPerAxis-1.0f), 0, 1, uv.x);
+        color =  maskTexture.SampleLevel(_LinearClamp,float2(u,v),0);
+    }
+
+    return color;
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void ProgressWithMask (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+        return;
+
+    int index = indexFromCoord(id.x,id.y,id.z);
+    float3 uv = id/float3(numPointsPerAxis-1, numPointsPerAxis-1, numPointsPerAxis-1);
+    float maskValue = GetRemappedUVColor(uv.xy);
+
+    if(voxels[index].value>=0 && maskValue>0)
+    {
+        InterlockedAdd(progress[0],1);
+
+        if(abs(paintTextureRead[id.xy].a-paintMaxValue)<0.01f)
+            InterlockedAdd(progress[1],1);
+    }
+}

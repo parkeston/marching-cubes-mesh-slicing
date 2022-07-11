@@ -1,0 +1,153 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel init
+#pragma kernel rowScan
+#pragma kernel colScan
+#pragma kernel findRoots
+#pragma kernel refine
+#pragma kernel depthScan
+
+static const int numThreads = 8;
+uint numPointsPerAxis;
+
+RWStructuredBuffer<int> labels;
+StructuredBuffer<int> voxels;
+
+int indexFromCoord(uint x, uint y, uint z) {
+    return z*numPointsPerAxis*numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+bool outOfBounds(uint3 id)
+{
+    return id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis;
+}
+
+int findRoot(int index)
+{
+    int root = labels[index];
+    int parent = labels[root];
+
+    while (root != parent) {
+        root = parent;
+        parent = labels[root];
+    }
+
+    return root;
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void init (uint3 id : SV_DispatchThreadID)
+{
+    if (outOfBounds(id))
+        return;
+    
+    //labels initialization
+    int index = indexFromCoord(id.x,id.y,id.z);
+    labels[index] = index;
+    //sync labels initialization between threads
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void rowScan (uint3 id : SV_DispatchThreadID)
+{
+    if (outOfBounds(id))
+        return;
+    
+    //row scan
+    if(id.x==0)
+        return;
+    
+    int index = indexFromCoord(id.x,id.y,id.z);
+    int lefterIndex = indexFromCoord(id.x-1,id.y,id.z);
+    if(voxels[index]==voxels[lefterIndex])
+        labels[index] = labels[lefterIndex];
+  
+    //sync labels row scan
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void colScan (uint3 id : SV_DispatchThreadID)
+{
+    if (outOfBounds(id))
+        return;
+    
+    //column scan
+    if(id.y==0)
+        return;
+    
+    int index = indexFromCoord(id.x,id.y,id.z);
+    int lowerIndex = indexFromCoord(id.x,id.y-1,id.z);
+    if(voxels[index]==voxels[lowerIndex])
+        labels[index] = labels[lowerIndex];
+    //sync labels column scan
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void depthScan (uint3 id : SV_DispatchThreadID)
+{
+    if (outOfBounds(id))
+        return;
+    
+    if(id.z ==0)
+        return;
+    
+    //depth scan
+    int index = indexFromCoord(id.x,id.y,id.z);
+    int behindIndex = indexFromCoord(id.x,id.y,id.z-1);
+    if(voxels[index]==voxels[behindIndex])
+        labels[index] = labels[behindIndex];
+    //sync labels depth scan
+}
+
+[numthreads(numThreads,numThreads,numThreads)]
+void findRoots (uint3 id : SV_DispatchThreadID)
+{
+    if (outOfBounds(id))
+        return;
+    
+    int index = indexFromCoord(id.x,id.y,id.z);
+    labels[index] = findRoot(index); //actually do not need this? (or after refine?)
+}
+
+
+void checkLabels(int index, int lowerIndex)
+{
+    if(voxels[index]==voxels[lowerIndex] && labels[index]!=labels[lowerIndex])
+    {
+        int targetRoot = findRoot(index);
+        int lowerRoot = findRoot(lowerIndex);
+
+        int oldValue=0;
+        //need to be atomic operation
+        if(targetRoot>lowerRoot)
+            InterlockedExchange(labels[targetRoot],lowerRoot,oldValue);
+        else if (targetRoot<lowerRoot)
+            InterlockedExchange(labels[lowerRoot],targetRoot,oldValue);
+    }
+}
+
+//todo: find a better approach to atomic problem of checkLabels method (now still have some issues)
+[numthreads(numThreads,numThreads,numThreads)]
+void refine (uint3 id : SV_DispatchThreadID)
+{
+    if(outOfBounds(id))
+        return;
+    
+    int index = indexFromCoord(id.x,id.y,id.z);    
+
+    if(id.y!=0)
+    {
+        int lowerIndex = indexFromCoord(id.x,id.y-1,id.z);
+        checkLabels(index,lowerIndex);
+    }
+
+    if(id.x!=0)
+    {
+        int lefterIndex = indexFromCoord(id.x-1,id.y,id.z);
+        checkLabels(index,lefterIndex);
+    }
+
+    //if there are a lot of input data (much more than threads groups can be), for ex. image 4096X4096X4096,
+    //than need to implement splitting to blocks(chunks)
+}
+
+
